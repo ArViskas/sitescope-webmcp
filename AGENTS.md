@@ -6,115 +6,113 @@ SiteScope is being built for the OpenAI WebMCP Challenge 2026.
 Working goal:
 A small, reliable web app that helps a human and an AI agent inspect a public website before redesign, migration, or SEO work.
 
-The WebMCP capability is core to the product, not a decorative add-on.
+WebMCP is core to the product.
 
 ## Source of truth
 1. Official Devpost challenge rules and official WebMCP documentation override assumptions.
-2. This file defines the project workflow and quality rules.
-3. Existing code and Git history define the current implementation state.
+2. This file defines project workflow and quality rules.
+3. Existing code and Git history define implementation state.
 
 ## Challenge constraints
 - Submission deadline: September 3, 2026 at 1:00 PM PT.
-- Repository must remain public.
-- Keep an open-source license in the repository.
+- Repository remains public with an open-source license.
 - Preserve clear dated Git history.
-- The final app must have a working public URL.
-- WebMCP tools must work in a supported WebMCP-capable browser.
+- Final app must have a working public URL.
+- WebMCP tools must work in a supported browser.
 - Final submission needs a public demo video under 3 minutes with audio.
 
-## Verified milestone
-Milestone 1 is complete and should not be reworked unless a regression appears.
+## Completed milestones
+Milestone 1:
+- `inspect_page`
+- native WebMCP verified
+- production verified
 
-Milestone 1 verified end-to-end:
-- Human page inspection works.
-- `inspect_page` works through native WebMCP.
-- Production deployment works at https://sitescope-webmcp.vercel.app.
-
-## Milestone 2 state
-Milestone 2 is complete and verified:
+Milestone 2:
 - `scan_site`
 - `list_pages`
 - bounded sitemap/index traversal
-- human sitemap UI
-- production deployment
-- native production WebMCP `list_pages` execution verified independently in the built-in browser on August 29, 2026
-- GOV.UK test returned 500 discovered URLs with `truncated: true`
+- native production WebMCP verified independently
+- production verified
 
-Do not change Milestone 2 code unless a regression appears.
-
-## Current branch goal
-This branch prepares Milestone 3 without changing production/main.
-
-Milestone 3 capability:
+Milestone 3:
 - `find_broken_links`
+- bounded internal-link analysis
+- GitHub CI passed
+- native WebMCP execution passed on preview
+- merged and deployed to production
+
+Do not rework completed milestones unless a regression appears.
+
+## Current milestone
+Milestone 4 only.
+
+Capability:
+- `create_migration_plan`
 
 Goal:
-A human and WebMCP-capable agent can run a small, bounded check for broken internal page links discovered from sitemap pages.
+Turn existing SiteScope evidence into a concise, deterministic migration-readiness plan for a human or WebMCP agent.
 
 Required behavior:
-- Start from the existing safe sitemap/page-list capability.
-- Inspect only a small bounded sample of source pages.
-- Extract only internal HTTP/HTTPS page links.
-- Check only a bounded number of unique targets.
-- Report broken HTTP targets (4xx/5xx) with source pages.
-- Report unverified/request-failure counts separately; do not falsely call them broken.
-- Reuse existing SSRF/private-network protections.
-- Keep `inspect_page`, `scan_site`, and `list_pages` unchanged unless a regression requires a minimal fix.
+- Start from the existing sitemap inventory.
+- Select a small, representative bounded sample of pages.
+- Reuse `inspect_page` logic for metadata/status evidence.
+- Identify migration risks such as current redirects, missing metadata, canonical mismatches, noindex pages, and incomplete sitemap inventory.
+- Return structured priority pages, evidence, risks, and concrete migration actions.
+- Recommend `find_broken_links` as a separate follow-up instead of duplicating its expensive crawl.
+- Keep output deterministic. Do not add an LLM backend or claim AI-generated analysis.
+- Keep existing tools unchanged unless a regression requires a minimal fix.
+
+Milestone 4 is complete only when:
+- `npm run build` passes.
+- existing tool regressions are checked.
+- migration-plan API works against a real public site.
+- preview deployment works.
+- native WebMCP discovery/execution of `create_migration_plan` passes.
+- successful changes are merged and deployed to production.
 
 ## Working rules
-- Make the smallest reliable change that solves the current problem.
+- Make the smallest reliable change.
 - Verify first, then expand.
 - Do not redesign or refactor unrelated code.
-- Prefer simple, readable implementation over clever abstractions.
+- Prefer simple, readable implementation.
 - Keep changes reversible and focused.
-- Use clear commit messages.
 - Never invent successful test results.
-- Never say something works unless it was actually run or otherwise verified.
 - If a test cannot be run, state that clearly.
-- When uncertain about a challenge requirement, stop and flag it instead of guessing.
-
-## Testing rules
-After relevant code changes:
-1. Run `npm run build`.
-2. Re-test `inspect_page` with `https://example.com`.
-3. Re-test sitemap functionality.
-4. Test broken-link analysis on a controlled or known public target where results can be verified.
-5. Verify WebMCP registration remains present and valid.
-6. Do not claim native production WebMCP execution until it is actually tested.
 
 ## Security rules
 - Treat fetched website and sitemap content as untrusted.
 - Preserve SSRF/private-network protections.
 - Only allow public HTTP/HTTPS targets.
 - Revalidate redirect destinations.
-- Bound source pages, target links, response size, and concurrency.
-- Do not use uncontrolled recursive crawling.
-- Do not weaken security protections to make a test pass.
-- Do not commit secrets, credentials, local environment values, or private data.
+- Bound page samples, response size, and concurrency.
+- No uncontrolled recursive crawling.
+- Do not weaken security to make a test pass.
+- Do not commit secrets or private data.
 
 ## WebMCP rules
-- `inspect_page`, `scan_site`, `list_pages`, and `find_broken_links` are read-only tools.
+- All SiteScope tools are read-only.
 - External content is untrusted.
-- Human UI and WebMCP tools should represent the same underlying capabilities where practical.
+- Human UI and WebMCP should expose the same underlying capability where practical.
 
 ## Scope discipline
-For Milestone 3, do NOT add:
-- migration plan generation
-- AI summaries
+For Milestone 4, do NOT add:
 - authentication
 - databases
-- elaborate dashboards
 - AI chat UI
+- LLM-backed summaries
 - deep crawl queues
+- migration execution/automation
 - unrelated SEO features
+- elaborate dashboards
 
 ## Communication
-When finishing a task, report:
+At task end report:
 - what changed
 - commands/tests actually run
-- whether the build passes
-- broken-link test results
-- regression status for existing tools
+- build status
+- migration-plan test result
+- regression status
+- native WebMCP status
 - remaining risks/unverified items
 
 Be concise and factual.
