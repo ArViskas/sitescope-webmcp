@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { findBrokenLinks } from "@/lib/broken-links";
 import { listSitePages, scanSite } from "@/lib/sitemap";
 
 export const runtime = "nodejs";
@@ -25,13 +26,17 @@ export async function POST(request: Request) {
       return NextResponse.json(await listSitePages(body.url.trim()));
     }
 
+    if (body.mode === "broken") {
+      return NextResponse.json(await findBrokenLinks(body.url.trim()));
+    }
+
     return NextResponse.json(
-      { error: 'Mode must be either "scan" or "list".' },
+      { error: 'Mode must be "scan", "list", or "broken".' },
       { status: 400 }
     );
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Unable to scan this site.";
+      error instanceof Error ? error.message : "Unable to analyze this site.";
 
     return NextResponse.json({ error: message }, { status: 400 });
   }
