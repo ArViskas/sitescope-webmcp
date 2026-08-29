@@ -306,9 +306,11 @@ export default function Home() {
   return (
     <main className="shell">
       <header className="topbar">
-        <div className="brand">
-          <span className="brandMark" aria-hidden="true">S</span>
-          <span>SiteScope</span>
+        <div className="brand" aria-label="SiteScope by Kitoki">
+          <span className="brandWord">
+            SiteScope<span className="brandDot">.</span>
+          </span>
+          <span className="brandBy">by Kitoki</span>
         </div>
         <span className={webMcpDetected ? "status statusOk" : "status"}>
           <span className="statusDot" />
@@ -317,12 +319,19 @@ export default function Home() {
       </header>
 
       <section className="hero">
-        <p className="eyebrow">Website intelligence for humans + agents</p>
+        <p className="eyebrow">WebMCP website intelligence</p>
         <h1>Understand a website before you change it.</h1>
         <p className="lede">
-          Inspect public page structure and metadata through the interface or let
-          a WebMCP-capable agent call the same structured tools directly.
+          Inspect a live site, map its public pages, check link health, and prepare
+          a migration baseline - through the interface or directly through WebMCP.
         </p>
+
+        <div className="heroFlow" aria-label="SiteScope workflow">
+          <span>Inspect</span>
+          <span>Discover</span>
+          <span>Check</span>
+          <span>Plan</span>
+        </div>
 
         <form className="scanForm" onSubmit={onSubmit}>
           <label htmlFor="url">Public webpage URL</label>
@@ -348,7 +357,7 @@ export default function Home() {
       <section className="resultsSection" aria-live="polite">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Milestone 1</p>
+            <p className="eyebrow">01 / Inspect</p>
             <h2>Page inspection</h2>
           </div>
           <code>inspect_page</code>
@@ -374,8 +383,8 @@ export default function Home() {
       <section className="resultsSection" aria-live="polite">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Milestone 2</p>
-            <h2>Sitemap discovery</h2>
+            <p className="eyebrow">02 / Discover</p>
+            <h2>Site inventory</h2>
           </div>
           <div className="sectionTools">
             <code>scan_site</code>
@@ -458,8 +467,8 @@ export default function Home() {
       <section className="resultsSection" aria-live="polite">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Milestone 3</p>
-            <h2>Broken internal links</h2>
+            <p className="eyebrow">03 / Check</p>
+            <h2>Link health</h2>
           </div>
           <code>find_broken_links</code>
         </div>
@@ -544,7 +553,7 @@ export default function Home() {
       <section className="resultsSection" aria-live="polite">
         <div className="sectionHeading">
           <div>
-            <p className="eyebrow">Milestone 4</p>
+            <p className="eyebrow">04 / Plan</p>
             <h2>Migration readiness</h2>
           </div>
           <code>create_migration_plan</code>
@@ -640,7 +649,10 @@ export default function Home() {
       </section>
 
       <footer>
-        SiteScope prototype · WebMCP Challenge 2026
+        <span>SiteScope · WebMCP Challenge 2026</span>
+        <span className="footerKitoki">
+          Built by Kitoki<span className="footerKitokiDot">.</span>
+        </span>
       </footer>
     </main>
   );

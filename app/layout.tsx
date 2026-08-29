@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SiteScope",
+  title: "SiteScope - Website migration intelligence",
   description:
-    "A WebMCP-powered website audit and migration assistant for humans and AI agents."
+    "A WebMCP-powered tool for inspecting public websites, mapping site inventory, checking link health, and preparing migration baselines."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
