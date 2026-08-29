@@ -53,27 +53,20 @@ Milestone 4 is complete and verified:
 
 Do not change Milestone 4 code unless a regression appears.
 
-## Current milestone
-Product polish and submission preparation only.
+## Current phase
+Submission preparation only.
 
 Goal:
-Turn the milestone prototype into one coherent final challenge submission without adding new major capabilities.
+Ship the existing verified product cleanly without adding new major capabilities.
 
-Required behavior:
-- Start from the existing sitemap inventory.
-- Select a small, representative bounded sample of pages.
-- Reuse `inspect_page` logic for metadata/status evidence.
-- Identify migration risks such as current redirects, missing metadata, canonical mismatches, noindex pages, and incomplete sitemap inventory.
-- Return structured priority pages, evidence, risks, and concrete migration actions.
-- Recommend `find_broken_links` as a separate follow-up instead of duplicating its expensive crawl.
-- Keep output deterministic. Do not add an LLM backend or claim AI-generated analysis.
-- Keep existing tools unchanged unless a regression requires a minimal fix.
+Remaining work:
+- keep README accurate and judge-friendly
+- keep CI green and reproducible
+- prepare the under-3-minute public demo video with audio
+- prepare the Devpost project description and submission fields
+- perform final production and repository checks before submission
 
-Completed Milestone 4 verification:
-- `npm run build` passed in GitHub CI.
-- preview deployment worked.
-- native WebMCP discovery/execution of `create_migration_plan` passed.
-- existing tools remained registered.
+Do not change the verified product behavior unless final QA reveals a real regression.
 
 ## Working rules
 - Make the smallest reliable change.
