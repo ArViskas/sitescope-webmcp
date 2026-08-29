@@ -43,14 +43,21 @@ Milestone 3:
 
 Do not rework completed milestones unless a regression appears.
 
-## Current milestone
-Milestone 4 only.
-
-Capability:
+## Milestone 4 state
+Milestone 4 is complete and verified:
 - `create_migration_plan`
+- deterministic migration-readiness analysis
+- GitHub CI passed
+- native WebMCP execution passed in the built-in browser on August 29, 2026
+- Next.js test returned 500 discovered pages, 8 priority pages inspected, 6 risks, and `inventoryTruncated: true`
+
+Do not change Milestone 4 code unless a regression appears.
+
+## Current milestone
+Product polish and submission preparation only.
 
 Goal:
-Turn existing SiteScope evidence into a concise, deterministic migration-readiness plan for a human or WebMCP agent.
+Turn the milestone prototype into one coherent final challenge submission without adding new major capabilities.
 
 Required behavior:
 - Start from the existing sitemap inventory.
@@ -62,13 +69,11 @@ Required behavior:
 - Keep output deterministic. Do not add an LLM backend or claim AI-generated analysis.
 - Keep existing tools unchanged unless a regression requires a minimal fix.
 
-Milestone 4 is complete only when:
-- `npm run build` passes.
-- existing tool regressions are checked.
-- migration-plan API works against a real public site.
-- preview deployment works.
-- native WebMCP discovery/execution of `create_migration_plan` passes.
-- successful changes are merged and deployed to production.
+Completed Milestone 4 verification:
+- `npm run build` passed in GitHub CI.
+- preview deployment worked.
+- native WebMCP discovery/execution of `create_migration_plan` passed.
+- existing tools remained registered.
 
 ## Working rules
 - Make the smallest reliable change.
@@ -95,7 +100,7 @@ Milestone 4 is complete only when:
 - Human UI and WebMCP should expose the same underlying capability where practical.
 
 ## Scope discipline
-For Milestone 4, do NOT add:
+For final polish, do NOT add:
 - authentication
 - databases
 - AI chat UI
