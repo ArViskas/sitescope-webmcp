@@ -143,7 +143,7 @@ a {
 .hero {
   position: relative;
   overflow: hidden;
-  padding: clamp(54px, 8vw, 98px) 0 clamp(52px, 7vw, 82px);
+  padding: clamp(50px, 7vw, 84px) 0 clamp(46px, 6vw, 68px);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -151,13 +151,15 @@ a {
 .hero::before {
   content: "";
   position: absolute;
-  inset: -18% -8%;
+  inset: -30% -22%;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 86% 18%, rgba(75, 88, 108, 0.18), transparent 44%),
-    radial-gradient(ellipse at 18% 92%, rgba(75, 88, 108, 0.08), transparent 42%),
-    linear-gradient(115deg, rgba(251, 250, 249, 0.2), rgba(251, 250, 249, 0.78));
-  filter: blur(10px);
+    radial-gradient(ellipse at 78% 20%, rgba(75, 88, 108, 0.16), transparent 46%),
+    radial-gradient(ellipse at 58% 62%, rgba(75, 88, 108, 0.07), transparent 48%),
+    radial-gradient(ellipse at 18% 92%, rgba(75, 88, 108, 0.05), transparent 44%),
+    linear-gradient(118deg, rgba(251, 250, 249, 0.12), rgba(251, 250, 249, 0.74));
+  filter: blur(22px);
+  opacity: 0.92;
 }
 
 .hero > * {
@@ -322,7 +324,7 @@ h1 {
 }
 
 .resultsSection {
-  padding: clamp(44px, 6vw, 72px) 0;
+  padding: clamp(36px, 5vw, 56px) 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -331,7 +333,7 @@ h1 {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 22px;
 }
 
 .sectionHeading h2 {
@@ -358,7 +360,7 @@ h1 {
 }
 
 .emptyState {
-  min-height: 112px;
+  min-height: 72px;
   display: grid;
   place-items: center;
   border-top: 1px solid var(--line);
@@ -409,7 +411,7 @@ h1 {
 
 .siteEmptyState,
 .siteSummary {
-  margin-top: 28px;
+  margin-top: 20px;
 }
 
 .pageListHeading {
@@ -417,7 +419,7 @@ h1 {
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin: 32px 0 12px;
+  margin: 26px 0 12px;
 }
 
 .pageListHeading h3 {
@@ -507,7 +509,7 @@ footer {
   }
 
   .hero {
-    padding-top: 48px;
+    padding-top: 42px;
   }
 
   .heroFlow {
