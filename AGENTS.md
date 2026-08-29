@@ -17,7 +17,7 @@ The WebMCP capability is core to the product, not a decorative add-on.
 - Submission deadline: September 3, 2026 at 1:00 PM PT.
 - Repository must remain public.
 - Keep an open-source license in the repository.
-- Preserve clear dated Git history. Judges evaluate work added during the submission period.
+- Preserve clear dated Git history.
 - The final app must have a working public URL.
 - WebMCP tools must work in a supported WebMCP-capable browser.
 - Final submission needs a public demo video under 3 minutes with audio.
@@ -26,46 +26,45 @@ The WebMCP capability is core to the product, not a decorative add-on.
 Milestone 1 is complete and should not be reworked unless a regression appears.
 
 Milestone 1 verified end-to-end:
-- Human enters a public webpage URL.
-- SiteScope returns structured page information.
-- The same action is exposed through the WebMCP tool `inspect_page`.
-- Local build passed.
+- Human page inspection works.
+- `inspect_page` works through native WebMCP.
 - Production deployment works at https://sitescope-webmcp.vercel.app.
-- `https://example.com` works through UI/API.
-- Native WebMCP discovery and execution of `inspect_page` passed in ChatGPT's built-in browser.
 
-## Current milestone
-Milestone 2 only.
-
-Goal:
-A human and a WebMCP-capable agent can discover a site's sitemap and retrieve a structured list of public pages.
-
-Required capabilities:
+## Milestone 2 state
+Milestone 2 is complete and verified:
 - `scan_site`
 - `list_pages`
+- bounded sitemap/index traversal
+- human sitemap UI
+- production deployment
+- native production WebMCP `list_pages` execution verified independently in the built-in browser on August 29, 2026
+- GOV.UK test returned 500 discovered URLs with `truncated: true`
 
-Milestone 2 should:
-- Accept a public site URL.
-- Look for sitemap.xml and sitemap indexes.
-- Parse sitemap URLs safely.
-- Return a concise structured scan summary.
-- Return a structured page list.
-- Reuse existing public-URL/SSRF protections.
-- Expose the same useful capabilities to the human UI and WebMCP agent where practical.
-- Stay intentionally small. Do not build a general-purpose crawler yet.
+Do not change Milestone 2 code unless a regression appears.
 
-Milestone 2 is complete only when:
-- `npm run build` passes.
-- A real public sitemap test passes.
-- Production deployment works.
-- Native WebMCP discovery and execution of `scan_site` and `list_pages` pass in a supported browser.
-- Existing `inspect_page` still works.
+## Current branch goal
+This branch prepares Milestone 3 without changing production/main.
+
+Milestone 3 capability:
+- `find_broken_links`
+
+Goal:
+A human and WebMCP-capable agent can run a small, bounded check for broken internal page links discovered from sitemap pages.
+
+Required behavior:
+- Start from the existing safe sitemap/page-list capability.
+- Inspect only a small bounded sample of source pages.
+- Extract only internal HTTP/HTTPS page links.
+- Check only a bounded number of unique targets.
+- Report broken HTTP targets (4xx/5xx) with source pages.
+- Report unverified/request-failure counts separately; do not falsely call them broken.
+- Reuse existing SSRF/private-network protections.
+- Keep `inspect_page`, `scan_site`, and `list_pages` unchanged unless a regression requires a minimal fix.
 
 ## Working rules
 - Make the smallest reliable change that solves the current problem.
 - Verify first, then expand.
 - Do not redesign or refactor unrelated code.
-- Do not add features unless they are required for the current milestone or explicitly requested.
 - Prefer simple, readable implementation over clever abstractions.
 - Keep changes reversible and focused.
 - Use clear commit messages.
@@ -76,60 +75,47 @@ Milestone 2 is complete only when:
 
 ## Testing rules
 After relevant code changes:
-1. Install dependencies if needed.
-2. Run `npm run build`.
-3. Run the app locally when practical.
-4. Re-test `inspect_page` with `https://example.com`.
-5. Test Milestone 2 against a real public site with a sitemap.
-6. Verify WebMCP registration remains present and valid.
-7. Report exactly what was tested, what failed, and what remains unverified.
-
-Do not hide warnings or failures.
+1. Run `npm run build`.
+2. Re-test `inspect_page` with `https://example.com`.
+3. Re-test sitemap functionality.
+4. Test broken-link analysis on a controlled or known public target where results can be verified.
+5. Verify WebMCP registration remains present and valid.
+6. Do not claim native production WebMCP execution until it is actually tested.
 
 ## Security rules
-- Treat fetched website content as untrusted.
-- Preserve and review SSRF/private-network protections.
+- Treat fetched website and sitemap content as untrusted.
+- Preserve SSRF/private-network protections.
 - Only allow public HTTP/HTTPS targets.
 - Revalidate redirect destinations.
-- Apply the same protections to sitemap fetches and sitemap index traversal.
-- Avoid uncontrolled recursive crawling.
-- Bound sitemap traversal, response size, and URL count.
-- Do not weaken security protections merely to make a test pass.
-- Do not commit secrets, tokens, credentials, local environment values, or private data.
-- Keep environment files out of Git.
+- Bound source pages, target links, response size, and concurrency.
+- Do not use uncontrolled recursive crawling.
+- Do not weaken security protections to make a test pass.
+- Do not commit secrets, credentials, local environment values, or private data.
 
 ## WebMCP rules
-- `inspect_page`, `scan_site`, and `list_pages` are read-only tools.
-- External webpage and sitemap content is untrusted.
-- WebMCP should expose useful structured actions an agent can call directly.
-- Do not build a normal website auditor and bolt WebMCP on afterward.
-- Human UI and WebMCP tools should represent the same underlying product capabilities where practical.
+- `inspect_page`, `scan_site`, `list_pages`, and `find_broken_links` are read-only tools.
+- External content is untrusted.
+- Human UI and WebMCP tools should represent the same underlying capabilities where practical.
 
 ## Scope discipline
-For Milestone 2, do NOT add:
-- broken-link analysis
+For Milestone 3, do NOT add:
 - migration plan generation
 - AI summaries
 - authentication
-- database infrastructure
-- CMS functionality
+- databases
 - elaborate dashboards
 - AI chat UI
 - deep crawl queues
-- migration automation
 - unrelated SEO features
-
-These may be considered only after Milestone 2 is deployed and verified.
 
 ## Communication
 When finishing a task, report:
-- what you inspected
-- what you changed
+- what changed
 - commands/tests actually run
 - whether the build passes
-- whether the sitemap/page-list test works
-- whether `inspect_page` still works
-- any remaining risks or unverified items
+- broken-link test results
+- regression status for existing tools
+- remaining risks/unverified items
 
 Be concise and factual.
 
