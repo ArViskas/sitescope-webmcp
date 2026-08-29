@@ -54,6 +54,39 @@ type BrokenLinkReport = {
   }>;
 };
 
+type MigrationPlan = {
+  requestedUrl: string;
+  siteOrigin: string;
+  pagesDiscovered: number;
+  inventoryTruncated: boolean;
+  priorityPagesSelected: number;
+  priorityPagesInspected: number;
+  riskCount: number;
+  risks: Array<{
+    level: "high" | "medium";
+    code: string;
+    url: string | null;
+    detail: string;
+  }>;
+  priorityPages: Array<{
+    url: string;
+    status: number | null;
+    finalUrl: string | null;
+    title: string | null;
+    h1: string | null;
+    metaDescription: string | null;
+    canonical: string | null;
+    indexStatus: "index" | "noindex" | null;
+    inspectionError: string | null;
+  }>;
+  actions: Array<{
+    priority: "critical" | "high" | "medium";
+    action: string;
+    reason: string;
+  }>;
+  recommendedFollowUpTools: string[];
+};
+
 async function inspect(url: string, signal?: AbortSignal): Promise<Inspection> {
   const response = await fetch("/api/inspect", {
     method: "POST",
@@ -72,7 +105,7 @@ async function inspect(url: string, signal?: AbortSignal): Promise<Inspection> {
 }
 
 async function siteRequest<T>(
-  mode: "scan" | "list" | "broken",
+  mode: "scan" | "list" | "broken" | "migration",
   url: string,
   signal?: AbortSignal
 ): Promise<T> {
@@ -105,6 +138,10 @@ export default function Home() {
   const [linkResult, setLinkResult] = useState<BrokenLinkReport | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
+  const [migrationUrl, setMigrationUrl] = useState("https://nextjs.org");
+  const [migrationResult, setMigrationResult] = useState<MigrationPlan | null>(null);
+  const [migrationError, setMigrationError] = useState<string | null>(null);
+  const [migrationLoading, setMigrationLoading] = useState(false);
   const [webMcpDetected, setWebMcpDetected] = useState(false);
 
   useEffect(() => {
@@ -172,6 +209,17 @@ export default function Home() {
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
         ) => siteRequest<BrokenLinkReport>("broken", toolUrl, signal)
+      },
+      {
+        name: "create_migration_plan",
+        description:
+          "Create a bounded migration-readiness plan from sitemap inventory and representative page metadata.",
+        inputSchema: urlInputSchema,
+        annotations,
+        execute: async (
+          { url: toolUrl }: { url: string },
+          { signal }: { signal: AbortSignal }
+        ) => siteRequest<MigrationPlan>("migration", toolUrl, signal)
       }
     ];
 
@@ -233,6 +281,25 @@ export default function Home() {
       );
     } finally {
       setLinkLoading(false);
+    }
+  }
+
+  async function onMigrationSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMigrationLoading(true);
+    setMigrationError(null);
+
+    try {
+      setMigrationResult(
+        await siteRequest<MigrationPlan>("migration", migrationUrl)
+      );
+    } catch (caught) {
+      setMigrationResult(null);
+      setMigrationError(
+        caught instanceof Error ? caught.message : "Migration plan failed."
+      );
+    } finally {
+      setMigrationLoading(false);
     }
   }
 
@@ -468,6 +535,104 @@ export default function Home() {
             ) : (
               <div className="emptyState siteEmptyState">
                 <p>No verified 4xx/5xx internal links were found in the bounded sample.</p>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      <section className="resultsSection" aria-live="polite">
+        <div className="sectionHeading">
+          <div>
+            <p className="eyebrow">Milestone 4</p>
+            <h2>Migration readiness</h2>
+          </div>
+          <code>create_migration_plan</code>
+        </div>
+
+        <form className="scanForm" onSubmit={onMigrationSubmit}>
+          <label htmlFor="migration-url">Public site URL</label>
+          <div className="inputRow">
+            <input
+              id="migration-url"
+              name="migration-url"
+              type="url"
+              value={migrationUrl}
+              onChange={(event) => setMigrationUrl(event.target.value)}
+              placeholder="https://example.com"
+              required
+            />
+            <button type="submit" disabled={migrationLoading}>
+              {migrationLoading ? "Planning…" : "Create migration plan"}
+            </button>
+          </div>
+        </form>
+
+        {migrationError && (
+          <div className="error" role="alert">{migrationError}</div>
+        )}
+
+        {!migrationResult ? (
+          <div className="emptyState siteEmptyState">
+            <p>Build a bounded migration baseline from sitemap and page metadata.</p>
+          </div>
+        ) : (
+          <>
+            <div className="resultsGrid siteSummary">
+              <ResultCard
+                label="Pages discovered"
+                value={String(migrationResult.pagesDiscovered)}
+              />
+              <ResultCard
+                label="Priority pages inspected"
+                value={String(migrationResult.priorityPagesInspected)}
+              />
+              <ResultCard
+                label="Risks found"
+                value={String(migrationResult.riskCount)}
+              />
+              <ResultCard
+                label="Inventory"
+                value={
+                  migrationResult.inventoryTruncated
+                    ? "Bounded / incomplete"
+                    : "Within limits"
+                }
+              />
+            </div>
+
+            <div className="pageListHeading">
+              <h3>Migration actions</h3>
+              <span>{migrationResult.actions.length} steps</span>
+            </div>
+            <ol className="pageList">
+              {migrationResult.actions.map((item, index) => (
+                <li key={`${item.priority}-${index}`}>
+                  <code>{item.priority.toUpperCase()} · {item.action}</code>
+                  <time>{item.reason}</time>
+                </li>
+              ))}
+            </ol>
+
+            <div className="pageListHeading">
+              <h3>Detected risks</h3>
+              <span>{migrationResult.risks.length}</span>
+            </div>
+            {migrationResult.risks.length ? (
+              <ol className="pageList">
+                {migrationResult.risks.map((risk, index) => (
+                  <li key={`${risk.code}-${risk.url ?? "site"}-${index}`}>
+                    <code>{risk.level.toUpperCase()} · {risk.code}</code>
+                    <time>
+                      {risk.url ? `${risk.url} · ` : ""}
+                      {risk.detail}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <div className="emptyState siteEmptyState">
+                <p>No migration risks were detected in the bounded sample.</p>
               </div>
             )}
           </>
