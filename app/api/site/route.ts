@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { findBrokenLinks } from "@/lib/broken-links";
+import { createMigrationPlan } from "@/lib/migration-plan";
 import { listSitePages, scanSite } from "@/lib/sitemap";
 
 export const runtime = "nodejs";
@@ -30,8 +31,12 @@ export async function POST(request: Request) {
       return NextResponse.json(await findBrokenLinks(body.url.trim()));
     }
 
+    if (body.mode === "migration") {
+      return NextResponse.json(await createMigrationPlan(body.url.trim()));
+    }
+
     return NextResponse.json(
-      { error: 'Mode must be "scan", "list", or "broken".' },
+      { error: 'Mode must be "scan", "list", "broken", or "migration".' },
       { status: 400 }
     );
   } catch (error) {
