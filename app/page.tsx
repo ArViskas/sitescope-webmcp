@@ -36,6 +36,24 @@ type SitePageList = {
   }>;
 };
 
+type BrokenLinkReport = {
+  requestedUrl: string;
+  sitemapPagesDiscovered: number;
+  sourcePagesSelected: number;
+  sourcePagesFetched: number;
+  internalLinksFound: number;
+  linksChecked: number;
+  unverifiedLinks: number;
+  brokenLinksFound: number;
+  truncated: boolean;
+  brokenLinks: Array<{
+    url: string;
+    status: number;
+    finalUrl: string;
+    sourcePages: string[];
+  }>;
+};
+
 async function inspect(url: string, signal?: AbortSignal): Promise<Inspection> {
   const response = await fetch("/api/inspect", {
     method: "POST",
@@ -54,7 +72,7 @@ async function inspect(url: string, signal?: AbortSignal): Promise<Inspection> {
 }
 
 async function siteRequest<T>(
-  mode: "scan" | "list",
+  mode: "scan" | "list" | "broken",
   url: string,
   signal?: AbortSignal
 ): Promise<T> {
@@ -83,6 +101,10 @@ export default function Home() {
   const [siteResult, setSiteResult] = useState<SitePageList | null>(null);
   const [siteError, setSiteError] = useState<string | null>(null);
   const [siteLoading, setSiteLoading] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("https://nextjs.org");
+  const [linkResult, setLinkResult] = useState<BrokenLinkReport | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
   const [webMcpDetected, setWebMcpDetected] = useState(false);
 
   useEffect(() => {
@@ -139,6 +161,17 @@ export default function Home() {
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
         ) => siteRequest<SitePageList>("list", toolUrl, signal)
+      },
+      {
+        name: "find_broken_links",
+        description:
+          "Check a bounded sample of internal page links and report verified 4xx/5xx targets with their source pages.",
+        inputSchema: urlInputSchema,
+        annotations,
+        execute: async (
+          { url: toolUrl }: { url: string },
+          { signal }: { signal: AbortSignal }
+        ) => siteRequest<BrokenLinkReport>("broken", toolUrl, signal)
       }
     ];
 
@@ -183,6 +216,23 @@ export default function Home() {
       setSiteError(caught instanceof Error ? caught.message : "Site scan failed.");
     } finally {
       setSiteLoading(false);
+    }
+  }
+
+  async function onBrokenLinksSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLinkLoading(true);
+    setLinkError(null);
+
+    try {
+      setLinkResult(await siteRequest<BrokenLinkReport>("broken", linkUrl));
+    } catch (caught) {
+      setLinkResult(null);
+      setLinkError(
+        caught instanceof Error ? caught.message : "Broken-link check failed."
+      );
+    } finally {
+      setLinkLoading(false);
     }
   }
 
@@ -334,6 +384,92 @@ export default function Home() {
                 </li>
               ))}
             </ol>
+          </>
+        )}
+      </section>
+
+      <section className="resultsSection" aria-live="polite">
+        <div className="sectionHeading">
+          <div>
+            <p className="eyebrow">Milestone 3</p>
+            <h2>Broken internal links</h2>
+          </div>
+          <code>find_broken_links</code>
+        </div>
+
+        <form className="scanForm" onSubmit={onBrokenLinksSubmit}>
+          <label htmlFor="link-url">Public site URL</label>
+          <div className="inputRow">
+            <input
+              id="link-url"
+              name="link-url"
+              type="url"
+              value={linkUrl}
+              onChange={(event) => setLinkUrl(event.target.value)}
+              placeholder="https://example.com"
+              required
+            />
+            <button type="submit" disabled={linkLoading}>
+              {linkLoading ? "Checking…" : "Check links"}
+            </button>
+          </div>
+        </form>
+
+        {linkError && <div className="error" role="alert">{linkError}</div>}
+
+        {!linkResult ? (
+          <div className="emptyState siteEmptyState">
+            <p>Check a bounded sample of internal page links for verified HTTP failures.</p>
+          </div>
+        ) : (
+          <>
+            <div className="resultsGrid siteSummary">
+              <ResultCard
+                label="Broken links"
+                value={String(linkResult.brokenLinksFound)}
+              />
+              <ResultCard
+                label="Links checked"
+                value={String(linkResult.linksChecked)}
+              />
+              <ResultCard
+                label="Source pages fetched"
+                value={String(linkResult.sourcePagesFetched)}
+              />
+              <ResultCard
+                label="Unverified links"
+                value={String(linkResult.unverifiedLinks)}
+              />
+              <ResultCard
+                label="Result status"
+                value={linkResult.truncated ? "Bounded sample" : "Complete sample"}
+                wide
+              />
+            </div>
+
+            {linkResult.brokenLinks.length ? (
+              <>
+                <div className="pageListHeading">
+                  <h3>Verified broken links</h3>
+                  <span>{linkResult.brokenLinks.length} URLs</span>
+                </div>
+                <ol className="pageList">
+                  {linkResult.brokenLinks.map((link) => (
+                    <li key={link.url}>
+                      <code>{link.status} · {link.url}</code>
+                      <time>
+                        Found on {link.sourcePages.length} sampled source
+                        {link.sourcePages.length === 1 ? "" : "s"}
+                      </time>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            ) : (
+              <div className="emptyState siteEmptyState">
+                <p>No verified 4xx/5xx internal links were found in the bounded sample.</p>
+              </div>
+            )}
           </>
         )}
       </section>
