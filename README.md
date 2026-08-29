@@ -2,12 +2,15 @@
 
 SiteScope is a WebMCP-powered website audit and migration assistant for humans and AI agents.
 
-## Milestone 1
+## Milestones 1–2
 
-The first end-to-end prototype supports one shared action:
+SiteScope currently supports three shared actions:
 
 - A human can enter a public webpage URL and inspect its basic structure.
 - A WebMCP-capable agent can call the same `inspect_page` tool directly.
+- A human or agent can discover `/sitemap.xml`, traverse a bounded sitemap
+  index, and retrieve a structured public page list through `scan_site` and
+  `list_pages`.
 
 The current inspection returns:
 
@@ -22,7 +25,10 @@ The current inspection returns:
 
 ## WebMCP
 
-The browser-facing app registers an `inspect_page` tool using:
+The browser-facing app registers `inspect_page`, `scan_site`, and `list_pages`
+as read-only tools. External page and sitemap content is marked as untrusted.
+
+The registration pattern is:
 
 ```js
 document.modelContext.registerTool({
@@ -40,6 +46,9 @@ document.modelContext.registerTool({
   }
 });
 ```
+
+Sitemap scanning is bounded to 10 sitemap documents, two index levels, 500
+page URLs, and 6 MB per sitemap response.
 
 ## Local development
 

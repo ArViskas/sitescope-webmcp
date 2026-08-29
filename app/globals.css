@@ -212,6 +212,13 @@ h1 {
   font-size: 12px;
 }
 
+.sectionTools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
 .emptyState {
   min-height: 150px;
   display: grid;
@@ -256,6 +263,61 @@ h1 {
   overflow-wrap: anywhere;
   font-size: 15px;
   line-height: 1.45;
+}
+
+.siteEmptyState,
+.siteSummary {
+  margin-top: 22px;
+}
+
+.pageListHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 26px 0 10px;
+}
+
+.pageListHeading h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.pageListHeading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pageList {
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fbfcfd;
+}
+
+.pageList li {
+  display: grid;
+  gap: 5px;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pageList li:last-child {
+  border-bottom: 0;
+}
+
+.pageList code {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.pageList time {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .mono {
