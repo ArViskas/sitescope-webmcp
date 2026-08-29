@@ -15,11 +15,12 @@ type Inspection = {
   contentType: string | null;
 };
 
-async function inspect(url: string): Promise<Inspection> {
+async function inspect(url: string, signal?: AbortSignal): Promise<Inspection> {
   const response = await fetch("/api/inspect", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ url })
+    body: JSON.stringify({ url }),
+    signal
   });
 
   const data = await response.json();
@@ -63,21 +64,19 @@ export default function Home() {
         readOnlyHint: true,
         untrustedContentHint: true
       },
-      execute: async ({ url: toolUrl }: { url: string }) => inspect(toolUrl)
+      execute: async (
+        { url: toolUrl }: { url: string },
+        { signal }: { signal: AbortSignal }
+      ) => inspect(toolUrl, signal)
     };
 
-    try {
-      modelContext.registerTool(tool);
-    } catch {
-      // A development hot reload can attempt to register the same tool twice.
-    }
+    const controller = new AbortController();
+    void modelContext.registerTool(tool, { signal: controller.signal }).catch(() => {
+      // A development hot reload can briefly overlap tool registrations.
+    });
 
     return () => {
-      try {
-        modelContext.unregisterTool?.("inspect_page");
-      } catch {
-        // Some WebMCP implementations may not expose unregisterTool yet.
-      }
+      controller.abort();
     };
   }, []);
 
