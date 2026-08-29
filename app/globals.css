@@ -364,7 +364,6 @@ h1 {
   display: grid;
   place-items: center;
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
   color: var(--muted);
   text-align: center;
 }
