@@ -31,14 +31,16 @@ Milestone 1 verified end-to-end:
 - Production deployment works at https://sitescope-webmcp.vercel.app.
 
 ## Milestone 2 state
-Milestone 2 implementation is complete and deployed:
+Milestone 2 is complete and verified:
 - `scan_site`
 - `list_pages`
 - bounded sitemap/index traversal
 - human sitemap UI
 - production deployment
+- native production WebMCP `list_pages` execution verified independently in the built-in browser on August 29, 2026
+- GOV.UK test returned 500 discovered URLs with `truncated: true`
 
-The only remaining Milestone 2 verification is one fresh native production `list_pages` execution when browser usage limits allow it. Do not change Milestone 2 code unless that verification exposes a real bug.
+Do not change Milestone 2 code unless a regression appears.
 
 ## Current branch goal
 This branch prepares Milestone 3 without changing production/main.
