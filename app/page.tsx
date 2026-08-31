@@ -185,10 +185,14 @@ export default function Home() {
 
     function beginActivity(tool: WebMcpActivityEntry["tool"], toolUrl: string) {
       const id = ++activitySequence.current;
-      setWebMcpActivity((entries) => [
-        ...entries,
-        { id, tool, url: toolUrl, status: "running", lines: [] }
-      ].slice(-8));
+      const nextEntry: WebMcpActivityEntry = {
+        id,
+        tool,
+        url: toolUrl,
+        status: "running",
+        lines: []
+      };
+      setWebMcpActivity((entries) => [...entries, nextEntry].slice(-8));
       return id;
     }
 
