@@ -323,6 +323,141 @@ h1 {
   line-height: 1.45;
 }
 
+.webMcpActivity {
+  width: min(900px, 100%);
+  margin-top: 26px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+}
+
+.activityHeader > div {
+  display: grid;
+  gap: 3px;
+}
+
+.activityKicker {
+  color: var(--red);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.activityHeader strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.clearActivity {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.clearActivity:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.clearActivity:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.activityLog {
+  max-height: 290px;
+  overflow: auto;
+  border-top: 1px solid var(--line-soft);
+  scroll-behavior: smooth;
+}
+
+.activityEmpty {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.activityEntry {
+  padding: 14px 0 15px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.activityEntry:last-child {
+  border-bottom: 0;
+}
+
+.activityEntryTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activityEntryTop code {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.activityState {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.activityState-running {
+  color: var(--muted-strong);
+}
+
+.activityState-complete {
+  color: var(--success);
+}
+
+.activityState-error {
+  color: var(--danger);
+}
+
+.activityUrl {
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+}
+
+.activityLines {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activityLines li {
+  overflow-wrap: anywhere;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+.activityLines li::before {
+  content: "— ";
+  color: var(--red);
+}
+
 .resultsSection {
   padding: clamp(36px, 5vw, 56px) 0;
   border-bottom: 1px solid var(--line);
@@ -521,6 +656,14 @@ footer {
 
   .inputRow button {
     width: 100%;
+  }
+
+  .activityHeader {
+    align-items: flex-start;
+  }
+
+  .activityLog {
+    max-height: 250px;
   }
 
   .resultsGrid {
