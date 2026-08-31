@@ -188,7 +188,7 @@ export default function Home() {
       setWebMcpActivity((entries) => [
         ...entries,
         { id, tool, url: toolUrl, status: "running", lines: [] }
-      ]);
+      ].slice(-8));
       return id;
     }
 
@@ -481,8 +481,15 @@ export default function Home() {
             <button
               type="button"
               className="clearActivity"
-              onClick={() => setWebMcpActivity([])}
-              disabled={!webMcpActivity.length}
+              onClick={() =>
+                setWebMcpActivity((entries) =>
+                  entries.filter((entry) => entry.status === "running")
+                )
+              }
+              disabled={
+                !webMcpActivity.length ||
+                webMcpActivity.some((entry) => entry.status === "running")
+              }
             >
               Clear activity
             </button>
