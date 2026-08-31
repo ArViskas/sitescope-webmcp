@@ -1,6 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+
+type WebMcpActivityEntry = {
+  id: number;
+  tool: "inspect_page" | "scan_site" | "list_pages" | "find_broken_links" | "create_migration_plan";
+  url: string;
+  status: "running" | "complete" | "error";
+  lines: string[];
+};
 
 type Inspection = {
   requestedUrl: string;
@@ -143,6 +151,15 @@ export default function Home() {
   const [migrationError, setMigrationError] = useState<string | null>(null);
   const [migrationLoading, setMigrationLoading] = useState(false);
   const [webMcpDetected, setWebMcpDetected] = useState(false);
+  const [webMcpActivity, setWebMcpActivity] = useState<WebMcpActivityEntry[]>([]);
+  const activitySequence = useRef(0);
+  const activityLogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const log = activityLogRef.current;
+    if (log) log.scrollTop = log.scrollHeight;
+  }, [webMcpActivity]);
+
 
   useEffect(() => {
     const modelContext = document.modelContext;
@@ -165,6 +182,59 @@ export default function Home() {
       readOnlyHint: true,
       untrustedContentHint: true
     };
+
+    function beginActivity(tool: WebMcpActivityEntry["tool"], toolUrl: string) {
+      const id = ++activitySequence.current;
+      const nextEntry: WebMcpActivityEntry = {
+        id,
+        tool,
+        url: toolUrl,
+        status: "running",
+        lines: []
+      };
+      setWebMcpActivity((entries) => [...entries, nextEntry].slice(-8));
+      return id;
+    }
+
+    function finishActivity(id: number, lines: string[]) {
+      setWebMcpActivity((entries) =>
+        entries.map((entry) =>
+          entry.id === id ? { ...entry, status: "complete", lines } : entry
+        )
+      );
+    }
+
+    function failActivity(id: number, error: unknown) {
+      setWebMcpActivity((entries) =>
+        entries.map((entry) =>
+          entry.id === id
+            ? {
+                ...entry,
+                status: "error",
+                lines: [error instanceof Error ? error.message : "Tool call failed."]
+              }
+            : entry
+        )
+      );
+    }
+
+    async function tracked<T>(
+      tool: WebMcpActivityEntry["tool"],
+      toolUrl: string,
+      run: () => Promise<T>,
+      summarize: (result: T) => string[]
+    ) {
+      const id = beginActivity(tool, toolUrl);
+      try {
+        const result = await run();
+        finishActivity(id, summarize(result));
+        return result;
+      } catch (caught) {
+        failActivity(id, caught);
+        throw caught;
+      }
+    }
+
     const tools = [
       {
         name: "inspect_page",
@@ -175,7 +245,11 @@ export default function Home() {
         execute: async (
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
-        ) => inspect(toolUrl, signal)
+        ) =>
+          tracked("inspect_page", toolUrl, () => inspect(toolUrl, signal), (result) => [
+            `${result.status} · ${result.finalUrl}`,
+            result.title ? `Title: ${result.title}` : "Title: not found"
+          ])
       },
       {
         name: "scan_site",
@@ -186,7 +260,16 @@ export default function Home() {
         execute: async (
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
-        ) => siteRequest<SiteScanSummary>("scan", toolUrl, signal)
+        ) =>
+          tracked(
+            "scan_site",
+            toolUrl,
+            () => siteRequest<SiteScanSummary>("scan", toolUrl, signal),
+            (result) => [
+              `${result.pagesDiscovered} pages discovered`,
+              result.sitemapUrl ? `Sitemap: ${result.sitemapUrl}` : "Sitemap: not found"
+            ]
+          )
       },
       {
         name: "list_pages",
@@ -197,7 +280,19 @@ export default function Home() {
         execute: async (
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
-        ) => siteRequest<SitePageList>("list", toolUrl, signal)
+        ) =>
+          tracked(
+            "list_pages",
+            toolUrl,
+            () => siteRequest<SitePageList>("list", toolUrl, signal),
+            (result) => {
+              const urls = result.pages.slice(0, 12).map((page) => page.url);
+              if (result.pages.length > urls.length) {
+                urls.push(`+${result.pages.length - urls.length} more URLs`);
+              }
+              return [`${result.summary.pagesDiscovered} pages discovered`, ...urls];
+            }
+          )
       },
       {
         name: "find_broken_links",
@@ -208,7 +303,19 @@ export default function Home() {
         execute: async (
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
-        ) => siteRequest<BrokenLinkReport>("broken", toolUrl, signal)
+        ) =>
+          tracked(
+            "find_broken_links",
+            toolUrl,
+            () => siteRequest<BrokenLinkReport>("broken", toolUrl, signal),
+            (result) => [
+              `${result.brokenLinksFound} broken link${result.brokenLinksFound === 1 ? "" : "s"} found`,
+              ...result.brokenLinks.flatMap((link) => [
+                `${link.status} · ${link.url}`,
+                `Source${link.sourcePages.length === 1 ? "" : "s"}: ${link.sourcePages.join(", ")}`
+              ])
+            ]
+          )
       },
       {
         name: "create_migration_plan",
@@ -219,7 +326,23 @@ export default function Home() {
         execute: async (
           { url: toolUrl }: { url: string },
           { signal }: { signal: AbortSignal }
-        ) => siteRequest<MigrationPlan>("migration", toolUrl, signal)
+        ) =>
+          tracked(
+            "create_migration_plan",
+            toolUrl,
+            () => siteRequest<MigrationPlan>("migration", toolUrl, signal),
+            (result) => [
+              `${result.riskCount} migration risks found`,
+              ...result.risks.slice(0, 5).map(
+                (risk) =>
+                  `Risk: ${risk.level.toUpperCase()} · ${risk.code}${risk.url ? ` · ${risk.url}` : ""}`
+              ),
+              ...result.actions.slice(0, 3).map(
+                (action, index) =>
+                  `Action ${index + 1}: ${action.action}`
+              )
+            ]
+          )
       }
     ];
 
@@ -352,6 +475,61 @@ export default function Home() {
         </form>
 
         {error && <div className="error" role="alert">{error}</div>}
+
+        <section className="webMcpActivity" aria-live="polite">
+          <div className="activityHeader">
+            <div>
+              <span className="activityKicker">Live WebMCP activity</span>
+              <strong>{webMcpActivity.length ? "Real agent calls" : "Waiting for agent calls"}</strong>
+            </div>
+            <button
+              type="button"
+              className="clearActivity"
+              onClick={() =>
+                setWebMcpActivity((entries) =>
+                  entries.filter((entry) => entry.status === "running")
+                )
+              }
+              disabled={
+                !webMcpActivity.length ||
+                webMcpActivity.some((entry) => entry.status === "running")
+              }
+            >
+              Clear activity
+            </button>
+          </div>
+
+          <div className="activityLog" ref={activityLogRef}>
+            {!webMcpActivity.length ? (
+              <p className="activityEmpty">
+                Native WebMCP calls will appear here as they run.
+              </p>
+            ) : (
+              webMcpActivity.map((entry) => (
+                <article className="activityEntry" key={entry.id}>
+                  <div className="activityEntryTop">
+                    <code>{entry.tool}</code>
+                    <span className={`activityState activityState-${entry.status}`}>
+                      {entry.status === "running"
+                        ? "Running…"
+                        : entry.status === "complete"
+                          ? "Complete"
+                          : "Error"}
+                    </span>
+                  </div>
+                  <div className="activityUrl">{entry.url}</div>
+                  {entry.lines.length > 0 && (
+                    <ul className="activityLines">
+                      {entry.lines.map((line, index) => (
+                        <li key={`${entry.id}-${index}`}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              ))
+            )}
+          </div>
+        </section>
       </section>
 
       <section className="resultsSection" aria-live="polite">
